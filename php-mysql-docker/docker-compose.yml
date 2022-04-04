@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+
+  simple-web:
+    container_name: simple-web
+    build: .
+    ports:
+      - ${WEB_PORT}:80
+    volumes:
+      - ./app:/var/www/html
+    networks:
+      - simple-web-network
+
+  simple-web-db:
+    container_name: simple-web-db
+    image: mysql:8.0
+    ports:
+      - ${MYSQL_PORT}:3306
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_INIT_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - simple-web-network
+    depends_on:
+      - simple-web
+
+  simple-web-pma:
+    container_name: simple-web-pma
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - ${PMA_PORT}:80
+    environment:
+      PMA_HOST: simple-web-db
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - simple-web-network
+    depends_on:
+      - simple-web-db
+
+networks:
+  simple-web-network:
+    name: "simple-web-network"
+    driver: bridge
